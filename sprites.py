@@ -3,8 +3,8 @@ from random import choice
 from settings import *
 
 
-class Player(pygame.sprite.Sprite):
-    """T-rex sprite"""
+class PlayerStand(pygame.sprite.Sprite):
+    """Standing player"""
     def __init__(self, pos, groups):
         super().__init__(groups)
         self.image = pygame.image.load(join("images", "player", "stand", "0.gif")).convert_alpha()
@@ -12,7 +12,9 @@ class Player(pygame.sprite.Sprite):
 
         self.frames_stand = []
         self.frames_stand_index = 0
+
         self.load_images_stand()
+
 
     def load_images_stand(self):
         """Loads standing images"""
@@ -31,10 +33,52 @@ class Player(pygame.sprite.Sprite):
         self.move_stand(dt)
 
 
+class PlayerRun(pygame.sprite.Sprite):
+    """Running player"""
+    def __init__(self, pos, groups):
+        super().__init__(groups)
+        self.image = pygame.image.load(join("images", "player", "run", "0.gif")).convert_alpha()
+        self.rect = self.image.get_frect(center=pos)
+
+        self.frames_run = []
+        self.frames_run_index = 0
+
+        self.load_images_run()
+        print(self.rect.y)
+
+    def input(self, dt):
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_SPACE]:
+            self.rect.y -= 2000 * dt
+
+        if self.rect.y < 300 and self.rect.y != 398:
+
+            self.image = pygame.image.load(join("images", "player", "jump.png")).convert_alpha()
+
+
+
+    def load_images_run(self):
+        """Loads standing images"""
+        for image_path, sub_folder, image_name in walk(join("images", "player", "run")):
+            if image_name:
+                for image_num in sorted(image_name, key=lambda n: int(n.split(".")[0])):
+                    full_path = join(image_path, image_num)
+                    surf = pygame.image.load(full_path)
+                    self.frames_run.append(surf)
+
+    def move_run(self, dt):
+        self.frames_run_index = self.frames_run_index + 5 * dt
+        self.image = self.frames_run[int(self.frames_run_index) % len(self.frames_run)]
+
+    def update(self, dt):
+        self.move_run(dt)
+        self.input(dt)
+
+
 class Clouds(pygame.sprite.Sprite):
     def __init__(self, groups):
         super().__init__(groups)
-        self.image = pygame.image.load(join("images", "player", "cloud.png")).convert_alpha()
+        self.image = pygame.image.load(join("images", "cloud.png")).convert_alpha()
         pos_x, pos_y = SCREEN_WIDTH + 100, choice([SCREEN_HEIGHT / 2, 100, 200, 300])
         self.rect = self.image.get_frect(center=(pos_x, pos_y))
         self.speed = 2
@@ -49,15 +93,31 @@ class Clouds(pygame.sprite.Sprite):
 class Trees(pygame.sprite.Sprite):
     def __init__(self, groups):
         super().__init__(groups)
-        self.images = [pygame.image.load(join("images", "player", "palm2-min.png")).convert_alpha(),
-                       pygame.image.load(join("images", "player", "palm-min.png")).convert_alpha()]
-        self.image = choice(self.images)
-        pos_x, pos_y = SCREEN_WIDTH + 100, SCREEN_HEIGHT - 200
+        self.image = pygame.image.load(choice([join("images", "palm2-min.png"), join("images", "palm-min.png")])).convert_alpha()
+        pos_x, pos_y = SCREEN_WIDTH + 500, SCREEN_HEIGHT - 200
         self.rect = self.image.get_frect(bottomright=(pos_x, pos_y))
         self.speed = 2
 
     def update(self, dt):
         """Moves"""
         self.rect.x += -(self.speed + dt)
-        if self.rect.x < -200:
+        if self.rect.x < -500:
+            self.kill()
+
+
+class Objects(pygame.sprite.Sprite):
+    def __init__(self, groups):
+        super().__init__(groups)
+        self.image = pygame.image.load(choice([join("images", "rock.png"),
+                                               join("images", "spike.png")
+                                               ]))
+
+        pos_x, pos_y = SCREEN_WIDTH + 500, SCREEN_HEIGHT - 180
+        self.rect = self.image.get_frect(bottomright=(pos_x, pos_y))
+        self.speed = 2
+
+    def update(self, dt):
+        """Moves"""
+        self.rect.x += -(self.speed + dt)
+        if self.rect.x < -500:
             self.kill()

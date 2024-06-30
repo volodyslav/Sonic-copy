@@ -35,8 +35,9 @@ class PlayerStand(pygame.sprite.Sprite):
 
 class PlayerRun(pygame.sprite.Sprite):
     """Running player"""
-    def __init__(self, pos, groups):
+    def __init__(self, pos, groups, collision_group):
         super().__init__(groups)
+        self.collision_group = collision_group
         self.image = pygame.image.load(join("images", "player", "run", "0.gif")).convert_alpha()
         self.rect = self.image.get_frect(center=pos)
 
@@ -44,15 +45,28 @@ class PlayerRun(pygame.sprite.Sprite):
         self.frames_run_index = 0
 
         self.load_images_run()
-        print(self.rect.y)
         self.velocity = 0
         self.gravity = 3000
         self.jump_speed = -1300
+
+        # Sounds
+        self.jump_sound = pygame.mixer.Sound(join("sounds", "jump.mp3"))
+        self.jump_sound.set_volume(0.04)
+
+        self.damage_sound = pygame.mixer.Sound(join("sounds", "damage.wav"))
+        self.damage_sound.set_volume(0.1)
+
+    def check_collision_objects_player(self):
+        for sprite in self.collision_group:
+            if self.rect.colliderect(sprite.rect):
+                print("Collide")
+                self.damage_sound.play()
 
     def input(self, dt):
         keys = pygame.key.get_pressed()
         if keys[pygame.K_SPACE] and self.rect.y > 350:
             self.velocity = self.jump_speed
+            self.jump_sound.play()
 
         self.velocity += self.gravity * dt
         self.rect.y += self.velocity * dt
@@ -61,15 +75,9 @@ class PlayerRun(pygame.sprite.Sprite):
             self.rect.y = PLAYER_RUN_POS
             self.velocity = 0
 
-
-
-
-        if self.rect.y < 398:
+        if self.rect.y < PLAYER_RUN_POS:
             self.image = pygame.image.load(join("images", "player", "jump.png")).convert_alpha()
-
-        print(self.rect.y)
-
-
+            
     def load_images_run(self):
         """Loads standing images"""
         for image_path, sub_folder, image_name in walk(join("images", "player", "run")):
@@ -86,6 +94,7 @@ class PlayerRun(pygame.sprite.Sprite):
     def update(self, dt):
         self.move_run(dt)
         self.input(dt)
+        self.check_collision_objects_player()
 
 
 class Clouds(pygame.sprite.Sprite):

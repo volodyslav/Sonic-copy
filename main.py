@@ -41,15 +41,32 @@ class Game:
         self.objects_event = pygame.event.custom_type()
         pygame.time.set_timer(self.objects_event, choice([1500, 2000]))
 
+        self.score_event = pygame.event.custom_type()
+        pygame.time.set_timer(self.score_event, 1000)
+
+        # Score
+        self.score = 0
+
         # Text nad font
         self.font = pygame.font.Font(None, 100)
+        self.score_font = pygame.font.Font(None, 50)
         self.start_text = self.font.render("Press 'S' to start", True, (255, 255, 255))
+
+        # Heart
+        self.health = 4
+
+        # Musics
+        pygame.mixer.init()
+        pygame.mixer.music.load(join("sounds", "mainMusic.wav"))
+        pygame.mixer.music.play()
 
     def run_game(self):
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     sys.exit()
+                if event.type == self.score_event and self.start_game:
+                    self.score += 1
                 if event.type == self.objects_event and self.start_game:
                     Objects((self.group_sprites, self.collision_group))
                 if event.type == self.cloud_event:
@@ -63,9 +80,15 @@ class Game:
                         self.start_game = True
                         # Change from stand to run
                         self.player.kill()
-                        self.player = PlayerRun((PLAYER_POSITION_X, PLAYER_RUN_POS), self.group_sprites)
+                        self.player = PlayerRun((PLAYER_POSITION_X, PLAYER_RUN_POS), self.group_sprites, self.collision_group)
 
             self.show_screen()
+
+    def draw_health(self):
+        image_health = pygame.image.load(join("images", "heart.png")).convert_alpha()
+        for i in range(1, self.health + 1):
+            rect_health = image_health.get_frect(center=( 100 * i, 50))
+            self.screen.blit(image_health, rect_health)
 
     def show_screen(self):
         dt = self.clock.tick() / 1000
@@ -88,6 +111,12 @@ class Game:
 
         if not self.start_game:
             self.screen.blit(self.start_text, self.start_text.get_frect(center=(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)))
+        else:
+            text_score = self.score_font.render(f"Score: {self.score}", True, (255, 0, 0))
+            self.screen.blit(text_score, text_score.get_frect(center=(SCREEN_WIDTH - 100, 50)))
+
+            self.draw_health()
+
         pygame.display.flip()
 
 

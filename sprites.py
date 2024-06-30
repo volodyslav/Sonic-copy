@@ -48,11 +48,9 @@ class PlayerRun(pygame.sprite.Sprite):
 
     def input(self, dt):
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_SPACE]:
+        if keys[pygame.K_SPACE] and self.rect.y > 100:
             self.rect.y -= 2000 * dt
-
-        if self.rect.y < 300 and self.rect.y != 398:
-
+        if self.rect.y < 398:
             self.image = pygame.image.load(join("images", "player", "jump.png")).convert_alpha()
 
 

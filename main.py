@@ -39,7 +39,7 @@ class Game:
         pygame.time.set_timer(self.trees_event, choice([1000, 1400]))
 
         self.objects_event = pygame.event.custom_type()
-        pygame.time.set_timer(self.objects_event, choice([1000, 1500]))
+        pygame.time.set_timer(self.objects_event, choice([1500, 2000]))
 
         # Text nad font
         self.font = pygame.font.Font(None, 100)
@@ -63,7 +63,7 @@ class Game:
                         self.start_game = True
                         # Change from stand to run
                         self.player.kill()
-                        self.player = PlayerRun((PLAYER_POSITION_X, PLAYER_POSITION_Y + 50), self.group_sprites)
+                        self.player = PlayerRun((PLAYER_POSITION_X, PLAYER_RUN_POS), self.group_sprites)
 
             self.show_screen()
 
@@ -85,7 +85,7 @@ class Game:
         # Draw the group sprite
         self.group_sprites.draw(self.screen)
         self.group_sprites.update(dt)
-        # Show the text on the screen
+
         if not self.start_game:
             self.screen.blit(self.start_text, self.start_text.get_frect(center=(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)))
         pygame.display.flip()

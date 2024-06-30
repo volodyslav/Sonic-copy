@@ -45,14 +45,29 @@ class PlayerRun(pygame.sprite.Sprite):
 
         self.load_images_run()
         print(self.rect.y)
+        self.velocity = 0
+        self.gravity = 3000
+        self.jump_speed = -1300
 
     def input(self, dt):
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_SPACE] and self.rect.y > 100:
-            self.rect.y -= 2000 * dt
+        if keys[pygame.K_SPACE] and self.rect.y > 350:
+            self.velocity = self.jump_speed
+
+        self.velocity += self.gravity * dt
+        self.rect.y += self.velocity * dt
+
+        if self.rect.y >= PLAYER_RUN_POS:
+            self.rect.y = PLAYER_RUN_POS
+            self.velocity = 0
+
+
+
+
         if self.rect.y < 398:
             self.image = pygame.image.load(join("images", "player", "jump.png")).convert_alpha()
 
+        print(self.rect.y)
 
 
     def load_images_run(self):

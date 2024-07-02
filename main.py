@@ -22,6 +22,7 @@ class Game:
         self.cloud_group = pygame.sprite.Group()
         self.tress_group = pygame.sprite.Group()
         self.collision_group = pygame.sprite.Group()
+        self.heart_group = pygame.sprite.Group()
 
         # Game settings
         self.you_lose = False
@@ -36,6 +37,10 @@ class Game:
         self.collision_time = 0
         self.collision_occurred = False
 
+        # Heart collision time
+        self.collision_heart_time = 0
+        self.collision_heart_occurred = False
+
         # Dt
         self.clock = pygame.time.Clock()
 
@@ -47,10 +52,18 @@ class Game:
         pygame.time.set_timer(self.trees_event, choice([1000, 1400]))
 
         self.objects_event = pygame.event.custom_type()
-        pygame.time.set_timer(self.objects_event, choice([1500, 2200]))
+        pygame.time.set_timer(self.objects_event, choice([1500, 2700]))
 
         self.score_event = pygame.event.custom_type()
         pygame.time.set_timer(self.score_event, 1000)
+
+        self.duck_event = pygame.event.custom_type()
+        pygame.time.set_timer(self.duck_event, 2000)
+
+        self.heart_event = pygame.event.custom_type()
+        pygame.time.set_timer(self.heart_event, 4000)
+
+        # Sounds
 
         self.damage_sound = pygame.mixer.Sound(join("sounds", "damage.wav"))
         self.damage_sound.set_volume(0.1)
@@ -66,6 +79,9 @@ class Game:
 
         self.sound_score_1000 = pygame.mixer.Sound(join("sounds", "score1000.wav"))
         self.sound_score_1000.set_volume(0.2)
+
+        self.sound_healing = pygame.mixer.Sound(join("sounds", "healing.wav"))
+        self.sound_healing.set_volume(0.2)
 
         # Text nad font
         self.font = pygame.font.Font(None, 100)
@@ -86,6 +102,10 @@ class Game:
                     self.score += 1
                 if event.type == self.objects_event and self.start_game:
                     Objects((self.group_sprites, self.collision_group))
+                if event.type == self.duck_event and self.start_game:
+                    Duck((self.group_sprites, self.collision_group))
+                if event.type == self.heart_event and self.start_game:
+                    HeartSprite((self.group_sprites, self.heart_group))
                 if event.type == self.cloud_event:
                     Clouds(self.cloud_group)
                 if event.type == self.trees_event and self.start_game:
@@ -103,7 +123,24 @@ class Game:
             self.check_lose()
             self.show_screen()
             self.check_collision_objects_player()
+            self.check_collision_heart_player()
             self.check_score_sound()
+
+    def check_collision_heart_player(self):
+        """Check collisions between the player and hearts"""
+        current_time = pygame.time.get_ticks()
+
+        if self.collision_heart_occurred and current_time - self.collision_heart_time > 1000:
+            self.collision_heart_occurred = False
+
+        # Collide with objects
+        for sprite in self.heart_group:
+            if sprite.rect.colliderect(self.player.rect) and not self.collision_heart_occurred:
+                self.sound_healing.play()
+                self.health.append(len(self.health) + 1)
+                self.collision_heart_time = current_time
+                self.collision_heart_occurred = True
+                sprite.kill()
 
     def check_collision_objects_player(self):
         """Check collisions between the player and objects"""
@@ -171,7 +208,7 @@ class Game:
                 text_lose = self.font.render("Game over", True, "white", )
                 self.screen.blit(text_lose, text_lose.get_frect(center=(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 200)))
         else:
-            text_score = self.score_font.render(f"Score: {self.score}", True, (120, 230, 0), (40, 40, 255))
+            text_score = self.score_font.render(f"Score: {self.score}", True, "Gold")
             self.screen.blit(text_score, text_score.get_frect(center=(SCREEN_WIDTH - 100, 50)))
             self.draw_health()
 

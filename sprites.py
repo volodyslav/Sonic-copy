@@ -32,6 +32,26 @@ class PlayerStand(pygame.sprite.Sprite):
         self.move_stand(dt)
 
 
+class HeartSprite(pygame.sprite.Sprite):
+    def __init__(self, groups):
+        super().__init__(groups)
+        self.pos = (SCREEN_WIDTH + 500, SCREEN_HEIGHT - 250)
+        self.image = pygame.image.load(join("images", "heart.png")).convert_alpha()
+        self.rect = self.image.get_frect(center=self.pos).inflate(-10, 0)
+        self.speed = 1
+        self.speed_up = 20
+
+    def move(self, dt):
+        self.rect.y -= self.speed_up * dt
+
+        self.rect.x += -(self.speed + dt)
+        if self.rect.x < -500:
+            self.kill()
+
+    def update(self, dt):
+        self.move(dt)
+
+
 class Health:
     def __init__(self, i, screen):
         self.screen = screen
@@ -47,7 +67,7 @@ class PlayerRun(pygame.sprite.Sprite):
     """Running player"""
     def __init__(self, pos, groups, collision_group):
         super().__init__(groups)
-        self.groups = groups
+
         self.collision_group = collision_group
         self.image = pygame.image.load(join("images", "player", "run", "0.gif")).convert_alpha()
         self.rect = self.image.get_frect(center=pos).inflate(-10, -10)
@@ -141,6 +161,42 @@ class Objects(pygame.sprite.Sprite):
 
     def update(self, dt):
         """Moves"""
+        self.rect.x += -(self.speed + dt)
+        if self.rect.x < -500:
+            self.kill()
+
+
+class Duck(pygame.sprite.Sprite):
+    def __init__(self, groups):
+        super().__init__(groups)
+        self.image = pygame.image.load(join("images", "duck", "0.png")).convert_alpha()
+
+        pos_x, pos_y = SCREEN_WIDTH + 500, SCREEN_HEIGHT - 180
+        self.rect = self.image.get_frect(bottomright=(pos_x, pos_y)).inflate(-10, 0)
+
+        self.speed = 2.2
+        self.frames = []
+        self.frame_index = 0
+
+        self.load_images()
+
+    def load_images(self):
+        """Loads duck images"""
+        for image_path, sub_folder, image_name in walk(join("images", "duck")):
+            if image_name:
+                for image_num in sorted(image_name, key=lambda n: int(n.split(".")[0])):
+                    full_path = join(image_path, image_num)
+                    surf = pygame.image.load(full_path)
+                    self.frames.append(surf)
+
+    def move_run(self, dt):
+        self.frame_index = self.frame_index + 5 * dt
+        self.image = self.frames[int(self.frame_index) % len(self.frames)]
+
+    def update(self, dt):
+        """Moves"""
+        self.move_run(dt)
+
         self.rect.x += -(self.speed + dt)
         if self.rect.x < -500:
             self.kill()

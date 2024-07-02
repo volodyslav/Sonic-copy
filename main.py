@@ -8,6 +8,7 @@ from random import choice
 class Game:
     def __init__(self):
         pygame.init()
+        pygame.mixer.init()
 
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         pygame.display.set_caption("Sonic")
@@ -23,6 +24,7 @@ class Game:
         self.collision_group = pygame.sprite.Group()
 
         # Game settings
+        self.you_lose = False
         self.start_game = False
         if not self.start_game:
             self.player = PlayerStand((PLAYER_POSITION_X, PLAYER_POSITION_Y), self.group_sprites)
@@ -53,8 +55,17 @@ class Game:
         self.damage_sound = pygame.mixer.Sound(join("sounds", "damage.wav"))
         self.damage_sound.set_volume(0.1)
 
+        self.lost_sound = pygame.mixer.Sound(join("sounds", "lost.wav"))
+        self.lost_sound.set_volume(0.2)
+
         # Score
         self.score = 0
+
+        self.sound_score_100 = pygame.mixer.Sound(join("sounds", "score.wav"))
+        self.sound_score_100.set_volume(0.2)
+
+        self.sound_score_1000 = pygame.mixer.Sound(join("sounds", "score1000.wav"))
+        self.sound_score_1000.set_volume(0.2)
 
         # Text nad font
         self.font = pygame.font.Font(None, 100)
@@ -62,9 +73,9 @@ class Game:
         self.start_text = self.font.render("Press 'S' to start", True, (255, 255, 255))
 
         # Musics
-        pygame.mixer.init()
         pygame.mixer.music.load(join("sounds", "mainMusic.wav"))
-        pygame.mixer.music.play()
+        # Play the music
+        pygame.mixer.music.play(-1)
 
     def run_game(self):
         while True:
@@ -82,14 +93,17 @@ class Game:
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         sys.exit()
-                    elif event.key == pygame.K_s:
+                    elif event.key == pygame.K_s and not self.start_game:
                         self.start_game = True
+                        self.you_lose = False
                         # Change from stand to run
                         self.player.kill()
                         self.player = PlayerRun((PLAYER_POSITION_X, PLAYER_RUN_POS),  self.group_sprites, self.collision_group)
 
+            self.check_lose()
             self.show_screen()
             self.check_collision_objects_player()
+            self.check_score_sound()
 
     def check_collision_objects_player(self):
         """Check collisions between the player and objects"""
@@ -98,14 +112,20 @@ class Game:
         if self.collision_occurred and current_time - self.collision_time > 1000:
             self.collision_occurred = False
 
+        # Collide with objects
         for sprite in self.collision_group:
             if sprite.rect.colliderect(self.player.rect) and not self.collision_occurred:
-                print("Collide")
                 self.damage_sound.play()
                 self.health.pop()
-                print(self.health)
                 self.collision_time = current_time
                 self.collision_occurred = True
+
+    def check_score_sound(self):
+        """Checks to play a sound with the specific score"""
+        if self.score == 100:
+            self.sound_score_100.play()
+        elif self.score == 1000:
+            self.sound_score_1000.play()
 
     def draw_health(self):
         """Draw specific amount of hearts on the screen"""
@@ -114,6 +134,18 @@ class Game:
             # Health
             heart.draw()
 
+    def check_lose(self):
+        """Check if the player doesn't have the hearts"""
+        if len(self.health) == 0:
+            for sprite in self.collision_group:
+                sprite.kill()
+            self.player.kill()
+            self.start_game = False
+            self.score = 0
+            self.lost_sound.play()
+            self.health = [i for i in range(1, 5)]
+            self.you_lose = True
+
     def show_screen(self):
         dt = self.clock.tick() / 1000
 
@@ -121,7 +153,7 @@ class Game:
         self.screen.fill(SCREEN_COLOR)
         # Draw the ground
         self.screen.blit(self.ground_image, self.ground_rect)
-        # dRAW CLOUDS
+        # Draw the clouds
         self.cloud_group.draw(self.screen)
         self.cloud_group.update(dt)
 
@@ -135,8 +167,11 @@ class Game:
 
         if not self.start_game:
             self.screen.blit(self.start_text, self.start_text.get_frect(center=(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)))
+            if self.you_lose:
+                text_lose = self.font.render("Game over", True, "white", )
+                self.screen.blit(text_lose, text_lose.get_frect(center=(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 200)))
         else:
-            text_score = self.score_font.render(f"Score: {self.score}", True, (255, 0, 0))
+            text_score = self.score_font.render(f"Score: {self.score}", True, (120, 230, 0), (40, 40, 255))
             self.screen.blit(text_score, text_score.get_frect(center=(SCREEN_WIDTH - 100, 50)))
             self.draw_health()
 

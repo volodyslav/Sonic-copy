@@ -42,6 +42,7 @@ class Health:
     def draw(self):
         self.screen.blit(self.image, self.rect)
 
+
 class PlayerRun(pygame.sprite.Sprite):
     """Running player"""
     def __init__(self, pos, groups, collision_group):
@@ -49,20 +50,19 @@ class PlayerRun(pygame.sprite.Sprite):
         self.groups = groups
         self.collision_group = collision_group
         self.image = pygame.image.load(join("images", "player", "run", "0.gif")).convert_alpha()
-        self.rect = self.image.get_frect(center=pos)
+        self.rect = self.image.get_frect(center=pos).inflate(-10, -10)
 
         self.frames_run = []
         self.frames_run_index = 0
 
         self.load_images_run()
         self.velocity = 0
-        self.gravity = 4000
-        self.jump_speed = -1800
+        self.gravity = 3000
+        self.jump_speed = -1500
 
         # Sounds
         self.jump_sound = pygame.mixer.Sound(join("sounds", "jump.mp3"))
         self.jump_sound.set_volume(0.04)
-
 
     def input(self, dt):
         keys = pygame.key.get_pressed()
@@ -96,7 +96,6 @@ class PlayerRun(pygame.sprite.Sprite):
     def update(self, dt):
         self.move_run(dt)
         self.input(dt)
-
 
 
 class Clouds(pygame.sprite.Sprite):
@@ -134,10 +133,10 @@ class Objects(pygame.sprite.Sprite):
         super().__init__(groups)
         self.image = pygame.image.load(choice([join("images", "rock.png"),
                                                join("images", "spike.png")
-                                               ]))
+                                               ])).convert_alpha()
 
         pos_x, pos_y = SCREEN_WIDTH + 500, SCREEN_HEIGHT - 180
-        self.rect = self.image.get_frect(bottomright=(pos_x, pos_y))
+        self.rect = self.image.get_frect(bottomright=(pos_x, pos_y)).inflate(-10, 0)
         self.speed = 2
 
     def update(self, dt):

@@ -15,7 +15,6 @@ class PlayerStand(pygame.sprite.Sprite):
 
         self.load_images_stand()
 
-
     def load_images_stand(self):
         """Loads standing images"""
         for image_path, sub_folder, image_name in walk(join("images", "player", "stand")):
@@ -33,10 +32,21 @@ class PlayerStand(pygame.sprite.Sprite):
         self.move_stand(dt)
 
 
+class Health:
+    def __init__(self, i, screen):
+        self.screen = screen
+        # Heart
+        self.image = pygame.image.load(join("images", "heart.png")).convert_alpha()
+        self.rect = self.image.get_frect(center=(100 * i, 50))
+
+    def draw(self):
+        self.screen.blit(self.image, self.rect)
+
 class PlayerRun(pygame.sprite.Sprite):
     """Running player"""
     def __init__(self, pos, groups, collision_group):
         super().__init__(groups)
+        self.groups = groups
         self.collision_group = collision_group
         self.image = pygame.image.load(join("images", "player", "run", "0.gif")).convert_alpha()
         self.rect = self.image.get_frect(center=pos)
@@ -46,25 +56,17 @@ class PlayerRun(pygame.sprite.Sprite):
 
         self.load_images_run()
         self.velocity = 0
-        self.gravity = 3000
-        self.jump_speed = -1300
+        self.gravity = 4000
+        self.jump_speed = -1800
 
         # Sounds
         self.jump_sound = pygame.mixer.Sound(join("sounds", "jump.mp3"))
         self.jump_sound.set_volume(0.04)
 
-        self.damage_sound = pygame.mixer.Sound(join("sounds", "damage.wav"))
-        self.damage_sound.set_volume(0.1)
-
-    def check_collision_objects_player(self):
-        for sprite in self.collision_group:
-            if self.rect.colliderect(sprite.rect):
-                print("Collide")
-                self.damage_sound.play()
 
     def input(self, dt):
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_SPACE] and self.rect.y > 350:
+        if keys[pygame.K_SPACE] and self.rect.y == PLAYER_RUN_POS:
             self.velocity = self.jump_speed
             self.jump_sound.play()
 
@@ -94,7 +96,7 @@ class PlayerRun(pygame.sprite.Sprite):
     def update(self, dt):
         self.move_run(dt)
         self.input(dt)
-        self.check_collision_objects_player()
+
 
 
 class Clouds(pygame.sprite.Sprite):

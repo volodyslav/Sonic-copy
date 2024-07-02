@@ -27,6 +27,12 @@ class Game:
         if not self.start_game:
             self.player = PlayerStand((PLAYER_POSITION_X, PLAYER_POSITION_Y), self.group_sprites)
 
+        # Player's health
+        self.health = [i for i in range(1, 5)]
+
+        # Collision settings
+        self.collision_time = 0
+        self.collision_occurred = False
 
         # Dt
         self.clock = pygame.time.Clock()
@@ -39,10 +45,13 @@ class Game:
         pygame.time.set_timer(self.trees_event, choice([1000, 1400]))
 
         self.objects_event = pygame.event.custom_type()
-        pygame.time.set_timer(self.objects_event, choice([1500, 2000]))
+        pygame.time.set_timer(self.objects_event, choice([1500, 2200]))
 
         self.score_event = pygame.event.custom_type()
         pygame.time.set_timer(self.score_event, 1000)
+
+        self.damage_sound = pygame.mixer.Sound(join("sounds", "damage.wav"))
+        self.damage_sound.set_volume(0.1)
 
         # Score
         self.score = 0
@@ -51,9 +60,6 @@ class Game:
         self.font = pygame.font.Font(None, 100)
         self.score_font = pygame.font.Font(None, 50)
         self.start_text = self.font.render("Press 'S' to start", True, (255, 255, 255))
-
-        # Heart
-        self.health = 4
 
         # Musics
         pygame.mixer.init()
@@ -80,15 +86,33 @@ class Game:
                         self.start_game = True
                         # Change from stand to run
                         self.player.kill()
-                        self.player = PlayerRun((PLAYER_POSITION_X, PLAYER_RUN_POS), self.group_sprites, self.collision_group)
+                        self.player = PlayerRun((PLAYER_POSITION_X, PLAYER_RUN_POS),  self.group_sprites, self.collision_group)
 
             self.show_screen()
+            self.check_collision_objects_player()
+
+    def check_collision_objects_player(self):
+        """Check collisions between the player and objects"""
+        current_time = pygame.time.get_ticks()
+
+        if self.collision_occurred and current_time - self.collision_time > 1000:
+            self.collision_occurred = False
+
+        for sprite in self.collision_group:
+            if sprite.rect.colliderect(self.player.rect) and not self.collision_occurred:
+                print("Collide")
+                self.damage_sound.play()
+                self.health.pop()
+                print(self.health)
+                self.collision_time = current_time
+                self.collision_occurred = True
 
     def draw_health(self):
-        image_health = pygame.image.load(join("images", "heart.png")).convert_alpha()
-        for i in range(1, self.health + 1):
-            rect_health = image_health.get_frect(center=( 100 * i, 50))
-            self.screen.blit(image_health, rect_health)
+        """Draw specific amount of hearts on the screen"""
+        for i in self.health:
+            heart = Health(i, self.screen)
+            # Health
+            heart.draw()
 
     def show_screen(self):
         dt = self.clock.tick() / 1000
@@ -114,7 +138,6 @@ class Game:
         else:
             text_score = self.score_font.render(f"Score: {self.score}", True, (255, 0, 0))
             self.screen.blit(text_score, text_score.get_frect(center=(SCREEN_WIDTH - 100, 50)))
-
             self.draw_health()
 
         pygame.display.flip()

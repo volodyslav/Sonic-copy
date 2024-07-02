@@ -148,6 +148,21 @@ class Trees(pygame.sprite.Sprite):
             self.kill()
 
 
+class Bird(pygame.sprite.Sprite):
+    def __init__(self, groups):
+        super().__init__(groups)
+        self.image = pygame.image.load(join("images", "bird.png")).convert_alpha()
+        pos_x, pos_y = SCREEN_WIDTH + 500, 200
+        self.rect = self.image.get_frect(center=(pos_x, pos_y)).inflate(-10, -10)
+        self.speed = 4
+
+    def update(self, dt):
+        """Moves"""
+        self.rect.x += -(self.speed + dt)
+        if self.rect.x < -500:
+            self.kill()
+
+
 class Objects(pygame.sprite.Sprite):
     def __init__(self, groups):
         super().__init__(groups)

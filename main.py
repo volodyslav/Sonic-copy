@@ -51,6 +51,9 @@ class Game:
         self.trees_event = pygame.event.custom_type()
         pygame.time.set_timer(self.trees_event, choice([1000, 1400]))
 
+        self.bird_event = pygame.event.custom_type()
+        pygame.time.set_timer(self.bird_event, choice([3000, 9000]))
+
         self.objects_event = pygame.event.custom_type()
         pygame.time.set_timer(self.objects_event, choice([1500, 2700]))
 
@@ -58,10 +61,10 @@ class Game:
         pygame.time.set_timer(self.score_event, 1000)
 
         self.duck_event = pygame.event.custom_type()
-        pygame.time.set_timer(self.duck_event, 2000)
+        pygame.time.set_timer(self.duck_event, 10000)
 
         self.heart_event = pygame.event.custom_type()
-        pygame.time.set_timer(self.heart_event, 4000)
+        pygame.time.set_timer(self.heart_event, 10000)
 
         # Sounds
 
@@ -110,6 +113,8 @@ class Game:
                     Clouds(self.cloud_group)
                 if event.type == self.trees_event and self.start_game:
                     Trees(self.tress_group)
+                if event.type == self.bird_event and self.start_game:
+                    Bird((self.group_sprites, self.collision_group))
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         sys.exit()
@@ -175,6 +180,8 @@ class Game:
         """Check if the player doesn't have the hearts"""
         if len(self.health) == 0:
             for sprite in self.collision_group:
+                sprite.kill()
+            for sprite in self.heart_group:
                 sprite.kill()
             self.player.kill()
             self.start_game = False

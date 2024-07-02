@@ -2,9 +2,8 @@
 
 Press 'S' to start playing the game. You have to avoid obstacles by jumping (pressing 'SPACE') over them. Spikes, rocks, ducks and birds are the obstacles. You can catch the flying hearts, they give you more health(hearts).
 
-![capture_240702_194306.png](capture_240702_194306.png)
-
-![capture_240702_194338.png](capture_240702_194338.png)
+![image_1.png](image_1.png)
+![image_2.png](image_2.png)
 # Requirements:
 python 3.11 and higher
 
